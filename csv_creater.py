@@ -22,8 +22,8 @@ numbers=["6282495083","9207842002", "8086027888", "9745249582", "9656528956", "9
 #converting to dataframe
 df=pd.DataFrame({'Phone':numbers})
 
-#to add indian area code to number start
-df["Phone"] = df["Phone"].apply(lambda x: f"+91{x.strip()}")
+# Change this line to add country code without +
+df["Phone"] = df["Phone"].apply(lambda x: f"91{x.strip()}")
 
 #assign names ,because the pywhatkit needs it 
 df["Name"] = [f"Person{i+1}" for i in range(len(df))]
