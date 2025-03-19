@@ -3,7 +3,7 @@ import pandas as pd
 import pywhatkit as kit
 import pyautogui  # Add this import at the top
 
-df = pd.read_csv('contacts.csv')
+df = pd.read_csv('contacts_cleaned.csv')
 
 invite_link = 'https://chat.whatsapp.com/IpIdU2xcZECHvaCYVc2oC5'
 delay = 15
