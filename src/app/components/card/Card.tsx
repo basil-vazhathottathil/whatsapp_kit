@@ -1,26 +1,78 @@
+// Card.tsx
 'use client';
 
 import React, { useRef, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import axios from 'axios'; // Make sure to install axios
 
 function Card() {
   const [message, setMessage] = useState<string>('');
   const [filename, setFileName] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
+  const [sendStatus, setSendStatus] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFile(file);
-      setFileName(file.name);
-      // Log file details for testing
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      // Validate CSV file
+      if (selectedFile.type !== 'text/csv' && !selectedFile.name.endsWith('.csv')) {
+        alert('Please select a CSV file');
+        return;
+      }
+      
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
       console.log('File selected:', {
-        name: file.name,
-        type: file.type,
-        size: file.size + ' bytes'
+        name: selectedFile.name,
+        type: selectedFile.type,
+        size: selectedFile.size + ' bytes'
       });
+    }
+  };
+
+  const handleSendMessages = async () => {
+    // Validate inputs
+    if (!file) {
+      alert('Please select a CSV file');
+      return;
+    }
+    
+    if (!message.trim()) {
+      alert('Please enter a message');
+      return;
+    }
+
+    // Create FormData to send file and message
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('message', message);
+
+    try {
+      // Set sending status
+      setSendStatus('Sending messages...');
+
+      // Send request to backend
+      const response = await axios.post('http://localhost:8000/send-whatsapp-messages/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      // Handle response
+      const { total_contacts, sent_messages, failed_messages, error_details } = response.data;
+      
+      // Update status message
+      setSendStatus(`
+        Total: ${total_contacts}, 
+        Sent: ${sent_messages}, 
+        Failed: ${failed_messages}
+      `);
+
+    } catch (error) {
+      console.error('Error sending messages:', error);
+      setSendStatus('Failed to send messages. Please try again.');
     }
   };
 
@@ -50,8 +102,16 @@ function Card() {
         </div>
         
         <div className="flex items-center gap-4 justify-start">
-          <Button className="w-40">start sending</Button>
-          <label className="text-sm">done?</label>
+          <Button 
+            className="w-40" 
+            onClick={handleSendMessages}
+            disabled={!file || !message.trim()}
+          >
+            start sending
+          </Button>
+          <label className="text-sm">
+            {sendStatus || 'Ready to send'}
+          </label>
         </div>
       </div>
     </div>
